@@ -1,0 +1,95 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/empty-state-webdash/empty-state-webdash.html">
+<link rel="import" href="/bower_components/paper-button/paper-button.html">
+
+<dom-module id="webdash-hue">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+      .center {
+        display: grid;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .small-content {
+        margin: 20px 0;
+      }
+
+      .small-content h2 {
+        margin-top: 0;
+      }
+
+      /*
+      * Some of the available colors
+      * var(--brand), var(--accent), var(--danger), var(--success), var(--alternative)
+      * var(--gray-9), var(--gray-8), var(--gray-7), ... var(--gray-3)
+      *
+      * these colors can be accessed from JavaScript (if needed)
+      * this.accent = getComputedStyle(this).getPropertyValue('--accent');
+      * https://codetogo.io/how-to-get-css-custom-property-in-javascript/
+      */
+    </style>
+
+    <template is="dom-if" if="[[bridges]]">
+      <div class="center small-content">
+        <h2>Bridges found</h2>
+        <template is="dom-repeat" items="[[bridges]]">
+          <paper-button on-click="connect">[[item.ip]]</paper-button>
+        </template>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[saveConfig]]">
+      <div class="center small-content">
+        <h2>Save config</h2>
+        <p>Save the below configuration in your
+          <strong>webdash.json</strong> file.</p>
+        <p>[[saveConfig]]</p>
+      </div>
+    </template>
+
+    <template is="dom-if" if="{{emptyState}}">
+      <empty-state-webdash title="Empty state title here">
+        Empty state description here
+      </empty-state-webdash>
+    </template>
+
+
+  </template>
+
+  <script>
+    class WebdashHue extends Polymer.Element {
+      static get is() { return 'webdash-hue'; }
+
+      ready() {
+        super.ready();
+        this.backend = new Backend(WebdashHue.is);
+        this.run();
+      }
+
+      run() {
+        this.loading = true;
+        // this.emptyState = true;
+
+        this.backend.get("discover").then(response => {
+          this.bridges = response.bridges;
+        });
+      }
+
+      connect(event) {
+        const ip = event.model.item.ip;
+
+        this.backend.post("connect", { ip }).then(response => {
+          this.saveConfig = JSON.stringify(response.config, null, 2);
+        });
+      }
+    }
+
+    window.customElements.define(WebdashHue.is, WebdashHue);
+  </script>
+</dom-module>
