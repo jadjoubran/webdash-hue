@@ -1,6 +1,6 @@
 # webdash hue
 
-Control your Philips hue lights from webdash.
+Control your Philips hue lights straight from your dashboard
 
 ```bash
 npm install --save-dev webdash-hue
@@ -10,9 +10,9 @@ npm install --save-dev webdash-hue
 
 ## Features
 
-- Turn lights on/off
+- Switch lights on/off
 - Set lights' brightness
-- Enable custom presets
+- Enable custom presets with different settings
 
 ## Configuration
 
