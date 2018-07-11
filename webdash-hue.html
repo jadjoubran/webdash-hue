@@ -1,6 +1,10 @@
 <link rel="import" href="/bower_components/polymer/polymer-element.html">
 <link rel="import" href="/bower_components/empty-state-webdash/empty-state-webdash.html">
 <link rel="import" href="/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="/bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="/bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="/bower_components/paper-spinner/paper-spinner.html">
 
 <dom-module id="webdash-hue">
   <template>
@@ -24,42 +28,151 @@
         margin-top: 0;
       }
 
-      /*
-      * Some of the available colors
-      * var(--brand), var(--accent), var(--danger), var(--success), var(--alternative)
-      * var(--gray-9), var(--gray-8), var(--gray-7), ... var(--gray-3)
-      *
-      * these colors can be accessed from JavaScript (if needed)
-      * this.accent = getComputedStyle(this).getPropertyValue('--accent');
-      * https://codetogo.io/how-to-get-css-custom-property-in-javascript/
-      */
+      .lights {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .light {
+        padding: 20px;
+        border: 1px solid transparent;
+      }
+
+      .light:nth-child(-n + 2) {
+        border-bottom-color: var(--gray-6);
+      }
+
+      .light:nth-child(2n-1) {
+        border-right-color: var(--gray-6);
+      }
+
+      .light-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .light-title h3 {
+        margin-left: 15px;
+      }
+
+      .presets {
+        margin-top: 10px;
+        margin-left: 10px;
+      }
+
+      paper-toggle-button {
+        --paper-toggle-button-checked-button-color: var(--brand);
+        --paper-toggle-button-checked-bar-color: var(--brand);
+      }
+
+      paper-slider {
+        --paper-slider-active-color: var(--brand);
+        --paper-slider-knob-color: var(--brand);
+        width: 100%;
+      }
+
+      .presets {
+        display: flex;
+      }
+
+      .preset paper-button {
+        width: 25px;
+        min-width: 25px;
+      }
+
+      paper-button.accent {
+        background-color: var(--accent);
+      }
+
+      paper-button.alternative {
+        background-color: var(--alternative);
+      }
+
+      paper-button.brand {
+        background-color: var(--brand);
+      }
+
+      .loader-container {
+        display: grid;
+        align-items: center;
+        justify-content: center;
+        margin-top: 50px;
+      }
+
+      .link-info {
+        max-width: 80%;
+        margin: 0 auto 20px;
+        color: var(--gray-4);
+      }
+
+      .code {
+        max-width: 80%;
+        margin-left: auto;
+        margin-right: auto;
+        font-family: Fira code, monospace;
+      }
     </style>
 
-    <template is="dom-if" if="[[bridges]]">
-      <div class="center small-content">
-        <h2>Bridges found</h2>
-        <template is="dom-repeat" items="[[bridges]]">
-          <paper-button on-click="connect">[[item.ip]]</paper-button>
-        </template>
-      </div>
-    </template>
+    <div id="plugin">
+      <template is="dom-if" if="[[loading]]">
+        <div class="loader-container">
+          <paper-spinner active></paper-spinner>
+        </div>
+      </template>
 
-    <template is="dom-if" if="[[saveConfig]]">
-      <div class="center small-content">
-        <h2>Save config</h2>
-        <p>Save the below configuration in your
-          <strong>webdash.json</strong> file.</p>
-        <p>[[saveConfig]]</p>
-      </div>
-    </template>
+      <template is="dom-if" if="[[bridges]]">
+        <div class="center small-content">
+          <h2>Bridges found</h2>
+          <p class="link-info">Please click on the Philips Hue bridge's
+            <strong>link</strong> button then choose the brdige below within 30 seconds</p>
+          <template is="dom-repeat" items="[[bridges]]" as="bridge">
+            <paper-button on-click="connect">[[bridge.ip]]</paper-button>
+          </template>
+        </div>
+      </template>
 
-    <template is="dom-if" if="{{emptyState}}">
-      <empty-state-webdash title="Empty state title here">
-        Empty state description here
-      </empty-state-webdash>
-    </template>
+      <template is="dom-if" if="[[saveConfig]]">
+        <div class="center small-content">
+          <h2>Save config</h2>
+          <p>Save the below configuration in your
+            <strong>webdash.json</strong> file.</p>
+          <p class="code">[[saveConfig]]</p>
+        </div>
+      </template>
 
 
+      <template is="dom-if" if="[[lights]]">
+        <div class="lights">
+          <template is="dom-repeat" items="[[lights]]" as="light">
+            <div class="light">
+              <div class="light-title">
+                <h3>[[light.attributes.attributes.name]]</h3>
+                <paper-toggle-button checked$="[[light.state.attributes.on]]" on-click="toggleLight"></paper-toggle-button>
+              </div>
+              <paper-slider value$="[[light.state.attributes.bri]]" max="254" on-change="updateBrightness"></paper-slider>
+
+              <div class="presets">
+                <template is="dom-repeat" items="[[getPresets()]]" as="preset">
+                  <div class="preset">
+                    <paper-tooltip position="top" animation-delay="0">[[preset.name]]</paper-tooltip>
+                    <paper-button on-click="activatePreset" class$="[[getPresetClass(index)]]" data-light$="[[light]]"></paper-button>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <template is="dom-if" if="{{emptyState}}">
+        <empty-state-webdash title="No bridges found">
+          Make sure your philips hue bridge is turned on and that you're on the same wifi
+        </empty-state-webdash>
+      </template>
+    </div>
+
+    <paper-toast id="toast" class="fit-bottom"></paper-toast>
   </template>
 
   <script>
@@ -74,20 +187,83 @@
 
       run() {
         this.loading = true;
-        // this.emptyState = true;
 
-        this.backend.get("discover").then(response => {
-          this.bridges = response.bridges;
-        });
+        if (window.webdashConfig.hue && window.webdashConfig.hue.ip) {
+          this.getLights();
+        } else {
+          this.backend.get("discover").then(response => {
+            if (!response.bridges) {
+              return this.emptyState = true;
+            }
+            this.bridges = response.bridges;
+            this.loading = false;
+          });
+        }
       }
 
       connect(event) {
-        const ip = event.model.item.ip;
+        const ip = event.model.bridge.ip;
 
         this.backend.post("connect", { ip }).then(response => {
-          this.saveConfig = JSON.stringify(response.config, null, 2);
+          if (response.message) {
+            const toast = this.$.toast;
+            toast.text = response.message;
+            toast.fitInto = this.$.plugin;
+            return toast.open();
+          }
+          this.bridges = null;
+          this.saveConfig = `"hue": ${JSON.stringify(response.config, null, 2)}`;
         });
       }
+
+      getLights() {
+        this.loading = false;
+        this.backend.get("lights").then(response => {
+          this.lights = response.lights;
+          console.log(this.lights);
+        });
+      }
+
+      setLight(id, state) {
+        this.backend.post("set-light", { id: id, state })
+          .then(this.getLights.bind(this));
+      }
+
+      toggleLight(event) {
+        const light = event.model.light;
+        const on = event.currentTarget.checked;
+
+        this.setLight(light.attributes.attributes.id, { on });
+      }
+
+      updateBrightness(event) {
+        const light = event.model.light;
+        const brightness = event.currentTarget.value;
+
+        this.setLight(light.attributes.attributes.id, { brightness, on: true });
+      }
+
+      getPresets() {
+        if (window.webdashConfig.hue && window.webdashConfig.hue.presets) {
+          return window.webdashConfig.hue.presets;
+        }
+      }
+
+      getPresetClass(index) {
+        const classes = ["accent", "alternative", "brand"]
+
+        return classes[index % 3];
+      }
+
+      activatePreset(event) {
+        const preset = event.model.preset;
+        const id = JSON.parse(event.currentTarget.dataset.light).attributes.attributes.id;
+
+        //remove preset.name to avoid renaming the light
+        delete preset.name;
+        this.setLight(id, preset);
+      }
+
     }
 
     window.customElements.define(WebdashHue.is, WebdashHue);
