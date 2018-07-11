@@ -60,7 +60,6 @@ module.exports = {
           })
           .catch(error => {
             if (error instanceof huejay.Error && error.type === 101) {
-              console.log(`Link button not pressed. Try again...`);
               return res.send({
                 message: "Link button not pressed. Try again..."
               });
@@ -84,7 +83,6 @@ module.exports = {
         client.lights
           .getById(body.id)
           .then(light => {
-            console.log(body.state);
             for (const key of Object.keys(body.state)) {
               console.log(key, body.state[key]);
               light[key] = body.state[key];

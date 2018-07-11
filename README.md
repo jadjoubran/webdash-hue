@@ -1,20 +1,29 @@
 # webdash hue
 
-[plugin description]
+Control your Philips hue lights from webdash.
 
 ```bash
 npm install --save-dev webdash-hue
 ```
 
-[screenshot here]
-
+![Webdash hue preview](https://i.imgur.com/yNBDyW2.png)
 
 ## Features
 
-* Feature 1
-* Feature 2
-* Feature 3
+- Turn lights on/off
+- Set lights' brightness
+- Enable custom presets
 
 ## Configuration
 
-Any configuration details?
+You can add as many presets as you want. Here's the format for a sample present that uses `ct` (colorTemp) as a colorMode
+
+```json
+{
+  "name": "Warm",
+  "on": true,
+  "brightness": 70,
+  "colorMode": "ct",
+  "colorTemp": 500
+}
+```
