@@ -1,6 +1,5 @@
 {
   "name": "webdash-hue",
-  "version": "0.0.1",
   "description": "",
   "main": "api.js",
   "directories": {
